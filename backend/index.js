@@ -171,16 +171,38 @@ app.get('/api/leaderboard', (req, res) => {
 // 5. Restart
 app.post('/api/restart', (req, res) => {
     try {
-        db.prepare("DELETE FROM photos").run();
-        db.prepare("DELETE FROM history").run();
+        try {
+            db.transaction(() => {
+                db.prepare("DELETE FROM history").run();
+                db.prepare("DELETE FROM photos").run();
+            })();
+        } catch (dbError) {
+             console.error("DB Cleanup Error:", dbError);
+             // Fallback: try deleting individually if constraint fails, though order above should be correct
+             try {
+                db.prepare("DELETE FROM history").run();
+                db.prepare("DELETE FROM photos").run();
+             } catch(e) {
+                 throw e; 
+             }
+        }
+        
         const uploadsDir = path.join(__dirname, 'public/uploads');
-        fs.readdir(uploadsDir, (err, files) => {
-            if (!err) files.forEach(file => {
-                if (file !== '.gitkeep') fs.unlink(path.join(uploadsDir, file), () => {});
-            });
-        });
+        if (fs.existsSync(uploadsDir)) {
+             const files = fs.readdirSync(uploadsDir);
+             files.forEach(file => {
+                 if (file !== '.gitkeep') {
+                     try {
+                        fs.unlinkSync(path.join(uploadsDir, file));
+                     } catch (e) {
+                         console.error(`Failed to delete ${file}:`, e);
+                     }
+                 }
+             });
+        }
         res.json({ success: true });
     } catch (err) {
+        console.error("Restart error:", err);
         res.status(500).json({ error: 'Restart failed' });
     }
 });

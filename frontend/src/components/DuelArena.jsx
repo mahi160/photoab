@@ -79,16 +79,16 @@ const DuelArena = () => {
           )}
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-center w-full gap-8">
+        <div className="flex flex-col md:flex-row items-center justify-center w-full gap-8 md:gap-12">
           {[left, right].map((item, idx) => (
-              <div key={item.id} className="relative flex-1 w-full max-w-md group">
+              <div key={item.id} className="relative flex-1 w-full max-w-2xl group">
                 <div 
-                  className={`relative w-full aspect-[4/5] md:aspect-square cursor-pointer overflow-hidden rounded-2xl shadow-2xl border-0 ring-4 ring-transparent transition-all duration-500 transform hover:scale-[1.02] ${idx === 0 ? 'hover:ring-blue-500/50 hover:-rotate-1' : 'hover:ring-purple-500/50 hover:rotate-1'}`}
+                  className={`relative w-full h-[70vh] md:h-[80vh] cursor-pointer overflow-hidden rounded-2xl shadow-2xl border-0 ring-4 ring-transparent transition-all duration-500 transform hover:scale-[1.02] ${idx === 0 ? 'hover:ring-blue-500/50 hover:-rotate-1' : 'hover:ring-purple-500/50 hover:rotate-1'}`}
                   onClick={() => handleVote(item.id, idx === 0 ? right.id : left.id)}
                 >
-                  <img src={`http://localhost:3001/uploads/${item.filename}`} alt="Contender" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <img src={`http://localhost:3001/uploads/${item.filename}`} alt="Contender" className="w-full h-full object-contain bg-black/40 transition-transform duration-700 group-hover:scale-105" />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none"></div>
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px] bg-black/20">
                     <span className={`${idx === 0 ? 'bg-blue-600 hover:bg-blue-500' : 'bg-purple-600 hover:bg-purple-500'} text-white px-8 py-3 rounded-full font-bold text-xl shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300`}>
                       Vote {idx === 0 ? 'Left' : 'Right'}

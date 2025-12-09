@@ -1,37 +1,50 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 
 const WinnerScreen = () => {
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [winner, setWinner] = useState(null);
-  const navigate = useNavigate();
   const location = useLocation();
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [winner] = useState(location.state?.winner || null);
   const winnerCardRef = useRef(null);
 
   useEffect(() => {
-    if (location.state?.winner) setWinner(location.state.winner);
+    // Only fetch leaderboard, winner is set initially from location state
     axios.get('http://localhost:3001/api/leaderboard')
          .then(res => setLeaderboard(res.data))
          .catch(console.error);
-  }, [location.state]);
+  }, []);
 
   const handleRestart = async () => {
     if (!window.confirm("Delete all and restart?")) return;
     try {
       await axios.post('http://localhost:3001/api/restart');
-      navigate('/');
-    } catch (e) { console.error(e); }
+      window.location.href = '/';
+    } catch (e) { 
+      console.error(e);
+      alert("Failed to restart: " + (e.response?.data?.error || e.message));
+    }
   };
 
   const handleDownload = async () => {
     if (!winnerCardRef.current) return;
-    const canvas = await html2canvas(winnerCardRef.current, { backgroundColor: null, scale: 2 });
-    const link = document.createElement('a');
-    link.download = `champion-${displayWinner.original_name}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
+    try {
+      const canvas = await html2canvas(winnerCardRef.current, {
+        useCORS: true,
+        scale: 2,
+        backgroundColor: '#111827',
+        logging: false,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `champion-${displayWinner.original_name}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert("Failed to download winner card.");
+    }
   };
 
   const displayWinner = winner || leaderboard[0];
@@ -40,29 +53,44 @@ const WinnerScreen = () => {
     <div className="flex flex-col items-center w-full max-w-5xl py-12 px-4 animate-fade-in">
       {displayWinner && (
         <div className="flex flex-col items-center mb-20 animate-fade-in-up w-full">
-          <div ref={winnerCardRef} className="flex flex-col items-center p-8 rounded-3xl bg-gray-900/50 backdrop-blur-sm border border-gray-800/50">
-            <h1 className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-500 to-red-500 mb-6 drop-shadow-sm text-center">THE CHAMPION</h1>
-            <h2 className="text-2xl font-bold text-white mb-8 tracking-wider">{displayWinner.original_name}</h2>
+          <div ref={winnerCardRef} className="flex flex-col items-center p-12 rounded-[2.5rem] bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 border border-gray-700/50 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent"></div>
             
-            <div className="relative group perspective-1000">
-              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse-slow"></div>
-              <div className="relative p-1 bg-gray-900 rounded-3xl">
-                <img src={`http://localhost:3001/uploads/${displayWinner.filename}`} alt="Winner" className="w-[16rem] h-[16rem] md:w-[20rem] md:h-[20rem] object-cover rounded-2xl shadow-2xl" />
+            <h1 className="relative z-10 text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-amber-600 mb-2 drop-shadow-sm text-center tracking-tighter filter drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">CHAMPION</h1>
+            <h2 className="relative z-10 text-2xl md:text-3xl font-bold text-gray-300 mb-10 tracking-[0.2em] uppercase text-center">{displayWinner.original_name}</h2>
+            
+            <div className="relative group perspective-1000 z-10">
+              <div className="absolute -inset-4 bg-gradient-to-tr from-yellow-500 via-orange-500 to-red-600 rounded-[2rem] blur-lg opacity-40 group-hover:opacity-60 transition duration-1000 animate-pulse-slow"></div>
+              <div className="relative p-2 bg-gradient-to-b from-gray-800 to-gray-950 rounded-[2rem] shadow-2xl ring-1 ring-white/10">
+                <img 
+                  src={`http://localhost:3001/uploads/${displayWinner.filename}`} 
+                  alt="Winner" 
+                  className="w-[22rem] h-[22rem] md:w-[32rem] md:h-[32rem] object-contain bg-black/40 rounded-[1.8rem] shadow-inner" 
+                  crossOrigin="anonymous"
+                />
               </div>
-              <div className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 bg-gradient-to-br from-yellow-400 to-orange-500 text-gray-900 w-20 h-20 md:w-24 md:h-24 rounded-full flex flex-col items-center justify-center shadow-2xl border-4 border-gray-900 transform rotate-12 group-hover:rotate-0 transition-all duration-300 z-10">
-                  <span className="text-xs md:text-sm font-bold uppercase tracking-wider opacity-80">Wins</span>
-                  <span className="text-3xl md:text-5xl font-black">{displayWinner.wins}</span>
+              
+              <div className="absolute -bottom-8 -right-8 bg-gradient-to-br from-yellow-400 to-amber-600 text-gray-900 w-24 h-24 md:w-28 md:h-28 rounded-full flex flex-col items-center justify-center shadow-[0_10px_20px_rgba(0,0,0,0.5)] border-4 border-gray-900 transform rotate-12 group-hover:rotate-6 transition-all duration-300 z-20">
+                  <span className="text-xs md:text-sm font-extrabold uppercase tracking-widest opacity-75">Wins</span>
+                  <span className="text-4xl md:text-5xl font-black leading-none">{displayWinner.wins}</span>
                </div>
-               <div className="absolute -top-6 -left-6 text-6xl animate-bounce-slight z-20">👑</div>
+               <div className="absolute -top-10 -left-10 text-7xl md:text-8xl filter drop-shadow-2xl animate-bounce-slight z-30 transform -rotate-12">👑</div>
             </div>
-            <div className="mt-8 flex gap-4">
-               <div className="px-6 py-2 bg-gray-800 rounded-full border border-gray-700 text-gray-300 font-medium">Round {displayWinner.round} Survivor</div>
+
+            <div className="relative z-10 mt-12 flex gap-4">
+               <div className="px-8 py-3 bg-gray-950/80 rounded-full border border-yellow-500/30 text-yellow-500 font-bold tracking-wider shadow-lg backdrop-blur-md">
+                 SURVIVED <span className="text-white ml-1">{displayWinner.round}</span> ROUNDS
+               </div>
             </div>
           </div>
           
-          <button onClick={handleDownload} className="mt-6 flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-            Download Winner Card
+          <button onClick={handleDownload} className="mt-8 group relative px-8 py-3 bg-gray-800 text-white font-bold rounded-xl overflow-hidden shadow-lg transition-all hover:scale-105 hover:shadow-yellow-500/20 border border-gray-700">
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
+            <span className="relative flex items-center gap-2">
+              <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              Save Champion Card
+            </span>
           </button>
         </div>
       )}
@@ -76,8 +104,8 @@ const WinnerScreen = () => {
           {leaderboard.map((photo, index) => (
             <div key={photo.id} className="group flex items-center bg-gray-800/50 hover:bg-gray-800 p-4 rounded-xl border border-gray-700/50 hover:border-gray-600 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg backdrop-blur-sm">
               <div className={`text-2xl font-black w-12 text-center flex-shrink-0 ${index === 0 ? 'text-yellow-400 text-4xl' : index === 1 ? 'text-gray-300 text-3xl' : index === 2 ? 'text-amber-600 text-3xl' : 'text-gray-600'}`}>#{index + 1}</div>
-              <div className="w-20 h-20 flex-shrink-0 mx-6 relative overflow-hidden rounded-lg">
-                  <img src={`http://localhost:3001/uploads/${photo.filename}`} alt="Ranked" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              <div className="w-32 h-32 flex-shrink-0 mx-6 relative overflow-hidden rounded-lg bg-black/20">
+                  <img src={`http://localhost:3001/uploads/${photo.filename}`} alt="Ranked" className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-lg text-white truncate mb-1 group-hover:text-blue-400 transition-colors">{photo.original_name}</p>

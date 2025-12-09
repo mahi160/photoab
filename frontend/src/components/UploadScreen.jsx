@@ -30,7 +30,10 @@ const UploadScreen = () => {
     try {
       await axios.post('http://localhost:3001/api/photos', formData);
       navigate('/duel');
-    } catch (e) { alert("Upload failed"); } 
+    } catch (error) {
+      console.error(error);
+      alert("Upload failed"); 
+    } 
     finally { setIsUploading(false); }
   };
 
