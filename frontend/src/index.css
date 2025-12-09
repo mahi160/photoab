@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  background-color: #0b0f19; /* gray-950 */
+  color: #ffffff;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  /* Add a subtle gradient background */
+  background: radial-gradient(circle at top center, #1f2937 0%, #0b0f19 70%);
+  background-attachment: fixed;
+}
+
