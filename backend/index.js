@@ -23,7 +23,16 @@ db.exec(`
     round INTEGER DEFAULT 1,
     wins INTEGER DEFAULT 0,
     status TEXT DEFAULT 'active'
-  )
+  );
+  
+  CREATE TABLE IF NOT EXISTS history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    winner_id INTEGER NOT NULL,
+    loser_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(winner_id) REFERENCES photos(id),
+    FOREIGN KEY(loser_id) REFERENCES photos(id)
+  );
 `);
 
 // Multer Storage
@@ -73,7 +82,8 @@ app.get('/api/duel', (req, res) => {
         if (r.count >= 2) {
           const photos = db.prepare("SELECT * FROM photos WHERE round = ? AND status = 'active' ORDER BY RANDOM() LIMIT 2").all(r.round);
           if (photos.length === 2 && photos[0].id !== photos[1].id) {
-             return { type: 'duel', left: photos[0], right: photos[1] };
+             const matchesRemaining = Math.floor(r.count / 2);
+             return { type: 'duel', left: photos[0], right: photos[1], matchesRemaining };
           }
         } else if (r.count === 1) {
           db.prepare("UPDATE photos SET round = round + 1 WHERE round = ? AND status = 'active'").run(r.round);
@@ -106,6 +116,7 @@ app.post('/api/vote', (req, res) => {
     const transaction = db.transaction(() => {
         db.prepare("UPDATE photos SET round = round + 1, wins = wins + 1 WHERE id = ?").run(winnerId);
         db.prepare("UPDATE photos SET status = 'eliminated' WHERE id = ?").run(loserId);
+        db.prepare("INSERT INTO history (winner_id, loser_id) VALUES (?, ?)").run(winnerId, loserId);
     });
     transaction();
     res.json({ success: true });
@@ -113,6 +124,32 @@ app.post('/api/vote', (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Vote failed' });
   }
+});
+
+// 3.5 Undo Vote
+app.post('/api/undo', (req, res) => {
+    try {
+        const lastAction = db.prepare("SELECT * FROM history ORDER BY id DESC LIMIT 1").get();
+        
+        if (!lastAction) {
+            return res.status(404).json({ error: 'No history to undo' });
+        }
+
+        const transaction = db.transaction(() => {
+            // Revert Winner: Decrease round and wins
+            db.prepare("UPDATE photos SET round = round - 1, wins = wins - 1 WHERE id = ?").run(lastAction.winner_id);
+            // Revert Loser: Set status back to active
+            db.prepare("UPDATE photos SET status = 'active' WHERE id = ?").run(lastAction.loser_id);
+            // Remove history record
+            db.prepare("DELETE FROM history WHERE id = ?").run(lastAction.id);
+        });
+
+        transaction();
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Undo failed' });
+    }
 });
 
 // 4. Get Leaderboard
@@ -135,6 +172,7 @@ app.get('/api/leaderboard', (req, res) => {
 app.post('/api/restart', (req, res) => {
     try {
         db.prepare("DELETE FROM photos").run();
+        db.prepare("DELETE FROM history").run();
         const uploadsDir = path.join(__dirname, 'public/uploads');
         fs.readdir(uploadsDir, (err, files) => {
             if (!err) files.forEach(file => {

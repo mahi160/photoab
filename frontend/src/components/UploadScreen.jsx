@@ -52,7 +52,7 @@ const UploadScreen = () => {
         </div>
       </div>
 
-      <div className={`mt-8 transition-all duration-500 ${files.length ? 'opacity-100' : 'opacity-0 translate-y-4'}`}>
+       <div className={`mt-8 transition-all duration-500 ${files.length ? 'opacity-100' : 'opacity-0 translate-y-4'}`}>
         <div className="bg-gray-800/80 px-6 py-3 rounded-full text-blue-300 font-medium shadow-lg border border-gray-700">
            {files.length} photos ready
         </div>

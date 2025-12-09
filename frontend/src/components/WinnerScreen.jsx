@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import html2canvas from 'html2canvas';
 
 const WinnerScreen = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [winner, setWinner] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const winnerCardRef = useRef(null);
 
   useEffect(() => {
     if (location.state?.winner) setWinner(location.state.winner);
@@ -23,27 +25,45 @@ const WinnerScreen = () => {
     } catch (e) { console.error(e); }
   };
 
+  const handleDownload = async () => {
+    if (!winnerCardRef.current) return;
+    const canvas = await html2canvas(winnerCardRef.current, { backgroundColor: null, scale: 2 });
+    const link = document.createElement('a');
+    link.download = `champion-${displayWinner.original_name}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+  };
+
   const displayWinner = winner || leaderboard[0];
 
   return (
     <div className="flex flex-col items-center w-full max-w-5xl py-12 px-4 animate-fade-in">
       {displayWinner && (
         <div className="flex flex-col items-center mb-20 animate-fade-in-up w-full">
-          <h1 className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-500 to-red-500 mb-10 drop-shadow-sm text-center">THE CHAMPION</h1>
-          <div className="relative group perspective-1000">
-            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse-slow"></div>
-            <div className="relative p-1 bg-gray-900 rounded-3xl">
-              <img src={`http://localhost:3001/uploads/${displayWinner.filename}`} alt="Winner" className="w-[16rem] h-[16rem] md:w-[20rem] md:h-[20rem] object-cover rounded-2xl shadow-2xl" />
+          <div ref={winnerCardRef} className="flex flex-col items-center p-8 rounded-3xl bg-gray-900/50 backdrop-blur-sm border border-gray-800/50">
+            <h1 className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-500 to-red-500 mb-6 drop-shadow-sm text-center">THE CHAMPION</h1>
+            <h2 className="text-2xl font-bold text-white mb-8 tracking-wider">{displayWinner.original_name}</h2>
+            
+            <div className="relative group perspective-1000">
+              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse-slow"></div>
+              <div className="relative p-1 bg-gray-900 rounded-3xl">
+                <img src={`http://localhost:3001/uploads/${displayWinner.filename}`} alt="Winner" className="w-[16rem] h-[16rem] md:w-[20rem] md:h-[20rem] object-cover rounded-2xl shadow-2xl" />
+              </div>
+              <div className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 bg-gradient-to-br from-yellow-400 to-orange-500 text-gray-900 w-20 h-20 md:w-24 md:h-24 rounded-full flex flex-col items-center justify-center shadow-2xl border-4 border-gray-900 transform rotate-12 group-hover:rotate-0 transition-all duration-300 z-10">
+                  <span className="text-xs md:text-sm font-bold uppercase tracking-wider opacity-80">Wins</span>
+                  <span className="text-3xl md:text-5xl font-black">{displayWinner.wins}</span>
+               </div>
+               <div className="absolute -top-6 -left-6 text-6xl animate-bounce-slight z-20">👑</div>
             </div>
-            <div className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 bg-gradient-to-br from-yellow-400 to-orange-500 text-gray-900 w-20 h-20 md:w-24 md:h-24 rounded-full flex flex-col items-center justify-center shadow-2xl border-4 border-gray-900 transform rotate-12 group-hover:rotate-0 transition-all duration-300 z-10">
-                <span className="text-xs md:text-sm font-bold uppercase tracking-wider opacity-80">Wins</span>
-                <span className="text-3xl md:text-5xl font-black">{displayWinner.wins}</span>
-             </div>
-             <div className="absolute -top-6 -left-6 text-6xl animate-bounce-slight z-20">👑</div>
+            <div className="mt-8 flex gap-4">
+               <div className="px-6 py-2 bg-gray-800 rounded-full border border-gray-700 text-gray-300 font-medium">Round {displayWinner.round} Survivor</div>
+            </div>
           </div>
-          <div className="mt-12 flex gap-4">
-             <div className="px-6 py-2 bg-gray-800 rounded-full border border-gray-700 text-gray-300 font-medium">Round {displayWinner.round} Survivor</div>
-          </div>
+          
+          <button onClick={handleDownload} className="mt-6 flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            Download Winner Card
+          </button>
         </div>
       )}
 
