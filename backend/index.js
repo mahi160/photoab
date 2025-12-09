@@ -63,7 +63,7 @@ app.get('/api/duel', (req, res) => {
       const activeCount = db.prepare("SELECT COUNT(*) as count FROM photos WHERE status = 'active'").get().count;
       
       if (activeCount <= 1) {
-         const winner = db.prepare("SELECT * FROM photos WHERE status = 'active'").get();
+         const winner = db.prepare("SELECT * FROM photos WHERE status = 'active' ORDER BY wins DESC LIMIT 1").get();
          return { type: 'winner', winner: winner || null };
       }
 
@@ -72,7 +72,9 @@ app.get('/api/duel', (req, res) => {
       for (const r of rounds) {
         if (r.count >= 2) {
           const photos = db.prepare("SELECT * FROM photos WHERE round = ? AND status = 'active' ORDER BY RANDOM() LIMIT 2").all(r.round);
-          return { type: 'duel', left: photos[0], right: photos[1] };
+          if (photos.length === 2 && photos[0].id !== photos[1].id) {
+             return { type: 'duel', left: photos[0], right: photos[1] };
+          }
         } else if (r.count === 1) {
           db.prepare("UPDATE photos SET round = round + 1 WHERE round = ? AND status = 'active'").run(r.round);
           return 'promoted';
@@ -82,7 +84,11 @@ app.get('/api/duel', (req, res) => {
     };
 
     let result = findMatch();
-    while (result === 'promoted') result = findMatch();
+    let attempts = 0;
+    while (result === 'promoted' && attempts < 10) {
+        result = findMatch();
+        attempts++;
+    }
 
     result ? res.json(result) : res.status(404).json({ error: 'No duel found' });
   } catch (err) {
@@ -112,7 +118,14 @@ app.post('/api/vote', (req, res) => {
 // 4. Get Leaderboard
 app.get('/api/leaderboard', (req, res) => {
     try {
-        res.json(db.prepare("SELECT * FROM photos ORDER BY wins DESC LIMIT 5").all());
+        const sql = `
+            SELECT id, filename, original_name, MAX(round) as round, MAX(wins) as wins, status 
+            FROM photos 
+            GROUP BY original_name 
+            ORDER BY wins DESC 
+            LIMIT 5
+        `;
+        res.json(db.prepare(sql).all());
     } catch (err) {
         res.status(500).json({ error: 'Leaderboard failed' });
     }
