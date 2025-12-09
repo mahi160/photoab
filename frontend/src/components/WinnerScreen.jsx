@@ -66,7 +66,7 @@ const WinnerScreen = () => {
                 <img 
                   src={`http://localhost:3001/uploads/${displayWinner.filename}`} 
                   alt="Winner" 
-                  className="w-[22rem] h-[22rem] md:w-[32rem] md:h-[32rem] object-contain bg-black/40 rounded-[1.8rem] shadow-inner" 
+                  className="w-[22rem] h-[22rem] md:w-[32rem] md:h-[32rem] object-contain bg-transparent rounded-[1.8rem] shadow-inner" 
                   crossOrigin="anonymous"
                 />
               </div>
@@ -85,10 +85,10 @@ const WinnerScreen = () => {
             </div>
           </div>
           
-          <button onClick={handleDownload} className="mt-8 group relative px-8 py-3 bg-gray-800 text-white font-bold rounded-xl overflow-hidden shadow-lg transition-all hover:scale-105 hover:shadow-yellow-500/20 border border-gray-700">
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
+          <button onClick={handleDownload} className="mt-8 group relative px-8 py-3 bg-white text-gray-900 font-bold rounded-xl overflow-hidden shadow-lg transition-all hover:scale-105 hover:shadow-yellow-500/20 border border-gray-200">
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-gray-100 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
             <span className="relative flex items-center gap-2">
-              <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               Save Champion Card
             </span>
           </button>
@@ -97,33 +97,33 @@ const WinnerScreen = () => {
 
       <div className="w-full max-w-3xl">
         <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-white">Hall of Fame</h2>
-            <div className="h-px bg-gray-700 flex-1 ml-8"></div>
+            <h2 className="text-3xl font-bold text-gray-900">Hall of Fame</h2>
+            <div className="h-px bg-gray-300 flex-1 ml-8"></div>
         </div>
         <div className="space-y-4">
           {leaderboard.map((photo, index) => (
-            <div key={photo.id} className="group flex items-center bg-gray-800/50 hover:bg-gray-800 p-4 rounded-xl border border-gray-700/50 hover:border-gray-600 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg backdrop-blur-sm">
-              <div className={`text-2xl font-black w-12 text-center flex-shrink-0 ${index === 0 ? 'text-yellow-400 text-4xl' : index === 1 ? 'text-gray-300 text-3xl' : index === 2 ? 'text-amber-600 text-3xl' : 'text-gray-600'}`}>#{index + 1}</div>
-              <div className="w-32 h-32 flex-shrink-0 mx-6 relative overflow-hidden rounded-lg bg-black/20">
+            <div key={photo.id} className="group flex items-center bg-white hover:bg-white/80 p-4 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg backdrop-blur-sm">
+              <div className={`text-2xl font-black w-12 text-center flex-shrink-0 ${index === 0 ? 'text-yellow-500 text-4xl' : index === 1 ? 'text-gray-400 text-3xl' : index === 2 ? 'text-amber-700 text-3xl' : 'text-gray-400'}`}>#{index + 1}</div>
+              <div className="w-32 h-32 flex-shrink-0 mx-6 relative overflow-hidden rounded-lg bg-gray-100">
                   <img src={`http://localhost:3001/uploads/${photo.filename}`} alt="Ranked" className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-lg text-white truncate mb-1 group-hover:text-blue-400 transition-colors">{photo.original_name}</p>
-                <div className="flex items-center gap-4 text-sm text-gray-400">
-                    <span className="bg-gray-700/50 px-2 py-0.5 rounded text-gray-300">Round {photo.round}</span>
-                    {photo.status === 'active' && <span className="text-green-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400"></span> Active</span>}
+                <p className="font-bold text-lg text-gray-900 truncate mb-1 group-hover:text-blue-600 transition-colors">{photo.original_name}</p>
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-600 border border-gray-200">Round {photo.round}</span>
+                    {photo.status === 'active' && <span className="text-green-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500"></span> Active</span>}
                 </div>
               </div>
               <div className="text-right pl-4">
-                <span className="block text-2xl font-black text-white group-hover:text-blue-400 transition-colors">{photo.wins}</span>
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Wins</span>
+                <span className="block text-2xl font-black text-gray-900 group-hover:text-blue-600 transition-colors">{photo.wins}</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Wins</span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <button onClick={handleRestart} className="mt-16 group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-red-600 font-lg rounded-xl hover:bg-red-500 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 focus:ring-offset-gray-900">
+      <button onClick={handleRestart} className="mt-16 group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-red-600 font-lg rounded-xl hover:bg-red-500 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 focus:ring-offset-white">
         <span className="absolute left-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
         <span className="relative flex items-center gap-3">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>

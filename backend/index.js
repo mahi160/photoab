@@ -37,7 +37,13 @@ db.exec(`
 
 // Multer Storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, 'public/uploads')),
+  destination: (req, file, cb) => {
+      const uploadDir = path.join(__dirname, 'public/uploads');
+      if (!fs.existsSync(uploadDir)){
+          fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+  },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
@@ -171,35 +177,42 @@ app.get('/api/leaderboard', (req, res) => {
 // 5. Restart
 app.post('/api/restart', (req, res) => {
     try {
+        // 1. Clean Database
         try {
-            db.transaction(() => {
+            const cleanup = db.transaction(() => {
                 db.prepare("DELETE FROM history").run();
                 db.prepare("DELETE FROM photos").run();
-            })();
+                db.prepare("DELETE FROM sqlite_sequence WHERE name='photos' OR name='history'").run();
+            });
+            cleanup();
+            // Optimize DB file
+            db.exec("VACUUM");
         } catch (dbError) {
              console.error("DB Cleanup Error:", dbError);
-             // Fallback: try deleting individually if constraint fails, though order above should be correct
-             try {
-                db.prepare("DELETE FROM history").run();
-                db.prepare("DELETE FROM photos").run();
-             } catch(e) {
-                 throw e; 
-             }
+             return res.status(500).json({ error: 'Database cleanup failed' });
         }
         
+        // 2. Clean Uploads Folder
         const uploadsDir = path.join(__dirname, 'public/uploads');
         if (fs.existsSync(uploadsDir)) {
              const files = fs.readdirSync(uploadsDir);
              files.forEach(file => {
                  if (file !== '.gitkeep') {
                      try {
-                        fs.unlinkSync(path.join(uploadsDir, file));
+                        const filePath = path.join(uploadsDir, file);
+                        // Check if it is a directory just in case
+                        if (fs.lstatSync(filePath).isDirectory()) {
+                            fs.rmSync(filePath, { recursive: true, force: true });
+                        } else {
+                            fs.unlinkSync(filePath);
+                        }
                      } catch (e) {
                          console.error(`Failed to delete ${file}:`, e);
                      }
                  }
              });
         }
+        console.log("System reset successfully");
         res.json({ success: true });
     } catch (err) {
         console.error("Restart error:", err);

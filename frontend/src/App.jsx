@@ -5,7 +5,7 @@ import WinnerScreen from "./components/WinnerScreen";
 
 const App = () => (
   <BrowserRouter>
-    <div className="min-h-screen text-white flex flex-col items-center justify-center p-4 font-sans antialiased">
+    <div className="min-h-screen text-gray-900 flex flex-col items-center justify-center p-4 font-sans antialiased">
       <Routes>
         <Route path="/" element={<UploadScreen />} />
         <Route path="/duel" element={<DuelArena />} />
