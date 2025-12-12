@@ -30,27 +30,31 @@ const DuelArena = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-          setPreviewImage(null);
-          return;
+      if (e.key === "Escape") {
+        setPreviewImage(null);
+        return;
       }
 
       if (!duelData || loading || previewImage) return;
-      
+
       const key = e.key.toLowerCase();
-      if (key === 'a') {
-        setPreviewImage(`http://localhost:3001/uploads/${duelData.left.filename}`);
-      } else if (key === 'b') {
-        setPreviewImage(`http://localhost:3001/uploads/${duelData.right.filename}`);
-      } else if (key === 'arrowleft') {
+      if (key === "a") {
+        setPreviewImage(
+          `http://localhost:3001/uploads/${duelData.left.filename}`,
+        );
+      } else if (key === "b") {
+        setPreviewImage(
+          `http://localhost:3001/uploads/${duelData.right.filename}`,
+        );
+      } else if (key === "arrowleft") {
         handleVote(duelData.left.id, duelData.right.id);
-      } else if (key === 'arrowright') {
+      } else if (key === "arrowright") {
         handleVote(duelData.right.id, duelData.left.id);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [duelData, loading, previewImage]);
 
   const handleVote = async (winnerId, loserId) => {
@@ -228,8 +232,10 @@ const DuelArena = () => {
                 className="absolute top-4 right-4 px-3 py-1 bg-white/90 hover:bg-white rounded-full text-gray-800 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 backdrop-blur-sm text-xs font-bold flex items-center gap-1"
                 title="View Full Size"
               >
-                 <span className="bg-gray-200 px-1.5 rounded text-[10px] border border-gray-300">{idx === 0 ? 'A' : 'B'}</span>
-                 <span>View</span>
+                <span className="bg-gray-200 px-1.5 rounded text-[10px] border border-gray-300">
+                  {idx === 0 ? "A" : "B"}
+                </span>
+                <span>View</span>
               </button>
             </div>
           ))}
@@ -241,7 +247,15 @@ const DuelArena = () => {
           </div>
         </div>
         <p className="mt-12 text-gray-400 text-sm uppercase tracking-widest font-semibold">
-          Click to vote • Press <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded font-bold mx-1 border border-gray-300">A</span> / <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded font-bold mx-1 border border-gray-300">B</span> to preview full size
+          Click to vote • Press{" "}
+          <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded font-bold mx-1 border border-gray-300">
+            A
+          </span>{" "}
+          /{" "}
+          <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded font-bold mx-1 border border-gray-300">
+            B
+          </span>{" "}
+          to preview full size
         </p>
       </div>
     </>
