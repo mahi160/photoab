@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../main";
 
 const UploadScreen = () => {
   const [files, setFiles] = useState([]);
@@ -30,7 +31,7 @@ const UploadScreen = () => {
     files.forEach((f) => formData.append("photos", f));
     setIsUploading(true);
     try {
-      await axios.post("http://localhost:3001/api/photos", formData);
+      await axios.post(API_BASE_URL + "/api/photos", formData);
       navigate("/duel");
     } catch (error) {
       console.error(error);
@@ -107,7 +108,7 @@ const UploadScreen = () => {
             )
           ) {
             try {
-              await axios.post("http://localhost:3001/api/restart");
+              await axios.post(API_BASE_URL + "/api/restart");
               setFiles([]);
               alert("System cleared!");
             } catch (e) {

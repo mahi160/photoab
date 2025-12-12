@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../main";
 
 const DuelArena = () => {
   const [duelData, setDuelData] = useState(null);
@@ -13,7 +14,7 @@ const DuelArena = () => {
   const fetchDuel = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:3001/api/duel");
+      const res = await axios.get(API_BASE_URL + "/api/duel");
       res.data.type === "winner"
         ? navigate("/winner", { state: { winner: res.data.winner } })
         : setDuelData(res.data);
@@ -39,13 +40,9 @@ const DuelArena = () => {
 
       const key = e.key.toLowerCase();
       if (key === "a") {
-        setPreviewImage(
-          `http://localhost:3001/uploads/${duelData.left.filename}`,
-        );
+        setPreviewImage(API_BASE_URL + `/uploads/${duelData.left.filename}`);
       } else if (key === "b") {
-        setPreviewImage(
-          `http://localhost:3001/uploads/${duelData.right.filename}`,
-        );
+        setPreviewImage(API_BASE_URL + `/uploads/${duelData.right.filename}`);
       } else if (key === "arrowleft") {
         handleVote(duelData.left.id, duelData.right.id);
       } else if (key === "arrowright") {
@@ -61,7 +58,7 @@ const DuelArena = () => {
     if (voting) return;
     setVoting(true);
     try {
-      await axios.post("http://localhost:3001/api/vote", { winnerId, loserId });
+      await axios.post(API_BASE_URL + "/api/vote", { winnerId, loserId });
       setCanUndo(true);
       await fetchDuel();
     } catch (e) {
@@ -73,7 +70,7 @@ const DuelArena = () => {
 
   const handleUndo = async () => {
     try {
-      await axios.post("http://localhost:3001/api/undo");
+      await axios.post(API_BASE_URL + "/api/undo");
       setCanUndo(false);
       fetchDuel();
     } catch (e) {
@@ -84,7 +81,7 @@ const DuelArena = () => {
   const handleReset = async () => {
     if (!window.confirm("Reset tournament? All progress will be lost.")) return;
     try {
-      await axios.post("http://localhost:3001/api/restart");
+      await axios.post(API_BASE_URL + "/api/restart");
       navigate("/");
     } catch (e) {
       console.error(e);
@@ -208,7 +205,7 @@ const DuelArena = () => {
                 }
               >
                 <img
-                  src={`http://localhost:3001/uploads/${item.filename}`}
+                  src={API_BASE_URL + `/uploads/${item.filename}`}
                   alt="Contender"
                   className="w-full h-full object-contain bg-gray-50 transition-transform duration-700 group-hover:scale-105 rounded-2xl"
                 />
@@ -225,9 +222,7 @@ const DuelArena = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setPreviewImage(
-                    `http://localhost:3001/uploads/${item.filename}`,
-                  );
+                  setPreviewImage(API_BASE_URL + `/uploads/${item.filename}`);
                 }}
                 className="absolute top-4 right-4 px-3 py-1 bg-white/90 hover:bg-white rounded-full text-gray-800 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 backdrop-blur-sm text-xs font-bold flex items-center gap-1"
                 title="View Full Size"
